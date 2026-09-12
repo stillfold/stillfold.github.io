@@ -50,6 +50,17 @@ account names or addresses. The whole report is shown to you before you send it,
 it is short enough to read in full, and you choose where it goes using your
 phone's normal share menu. Nothing is sent unless you do this.
 
+## What the app keeps
+
+After each copy the app keeps a small record on the phone so the copy can be
+taken back: the date, the names of the two calendars, how many events it
+wrote, which rows in the destination they are, and a fingerprint of each row
+as it was written, so that a row you have since changed is recognised and
+left alone. The fingerprint is a hash: nothing about the event can be read
+back out of it. The record holds no event titles, descriptions, locations or
+times. It lives in the app's private storage, is never sent anywhere, and is
+removed with the app.
+
 ## Permissions
 
 - **Read calendar**: to read the events you are copying.
@@ -62,8 +73,8 @@ The app is not directed at children and collects nothing from anyone.
 
 ## Data retention and deletion
 
-The app stores no personal data, so there is nothing to retain or delete.
-Removing the app removes everything it holds. Events already copied belong to
+Beyond the record of copies described above, the app stores nothing, and
+that record is deleted with the app. Events already copied belong to
 your calendar account and are managed there, not here.
 
 ## Changes
