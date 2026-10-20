@@ -84,5 +84,5 @@ versions remain in the project's history.
 
 ## Contact
 
-stillfold.open988@8alias.com, which is also the contact address on the Play
+stillfold@pm.me, which is also the contact address on the Play
 Store listing.
