@@ -38,8 +38,10 @@ a reward. There are no forced ads. To show and measure ads and to prevent
 fraud, Google may collect your device's advertising ID, your IP address and
 the approximate location worked out from it, device and app information, and
 how you interact with ads. In the UK and EEA you are asked for consent first,
-and you can change your choice at any time in Settings > Privacy. Google's
-policy on ads: https://policies.google.com/technologies/ads
+and you can change your choice at any time in Settings > Privacy. In US
+states with their own privacy laws you can opt out of the sale or sharing of
+your data for ads in Settings > Privacy. Google's policy on ads:
+https://policies.google.com/technologies/ads
 
 ## Purchases
 
