@@ -43,6 +43,11 @@ const imageUrl = new URL(image, Astro.site).href;
     {schema.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
   </head>
   <body>
+    <!-- Cloudflare, which serves the site, can swap every email address for
+         a script that puts it back. The two comments below tell it not to:
+         the contact address in a privacy policy has to be readable without
+         JavaScript, by a person or a reviewer's crawler alike. -->
+    <!--email_off-->
     <a class="skip" href="#main">Skip to the page</a>
     <nav class="nav" aria-label="Main">
       <a class="nav__home" href="/">stillfold</a>
@@ -56,5 +61,6 @@ const imageUrl = new URL(image, Astro.site).href;
     <script>
       import '../scripts/sheet.js';
     </script>
+    <!--/email_off-->
   </body>
 </html>

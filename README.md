@@ -23,7 +23,7 @@ src/layouts/Base.astro                the head of every page: title, description
 src/components/                       the folded paper, the Play button, the QR code, the screenshot row
 src/styles/global.css                 every style, with the idea explained at the top
 src/scripts/sheet.js                  moves the light and unfolds the panels
-public/                               files served as they are: CNAME, app-ads.txt, robots.txt, share pictures
+public/                               files served as they are: app-ads.txt, robots.txt, share pictures, and _headers for Cloudflare
 tools/                                check.mjs and shots.mjs
 ```
 
@@ -47,15 +47,19 @@ other must be too, or the halves stop lining up.
 
 ## Rules
 
-- `public/CNAME`, `public/app-ads.txt` and the two privacy policy addresses
-  (`/caltransfer/privacy/`, `/pickaxeplanet/privacy/`) are held by GitHub,
-  AdMob and the Play Console. Do not move, rename or remove them.
-  `npm run check` fails if one is gone.
+- `public/app-ads.txt` and the two privacy policy addresses
+  (`/caltransfer/privacy/`, `/pickaxeplanet/privacy/`) are held by AdMob
+  and the Play Console. Do not move, rename or remove them.
+  `public/_headers` is read by Cloudflare Pages, which serves the site: it
+  keeps the project's own pages.dev copy out of search. `npm run check`
+  fails if one of these is gone.
 - A privacy policy has two copies, here and `PRIVACY.md` in the app's
   repository. Change both in the same sitting.
 - Every link to Google Play goes through `play()` in `src/data/site.js`, so
   it carries the referrer the Play Console counts installs by.
-- Pushing to `main` publishes.
+- Pushing to `main` publishes: Cloudflare Pages builds it (`npm run build
+  && npm run check`, Node from `.node-version`) and serves `dist/`. Any
+  other branch gets a preview address of its own and is not published.
 
 ## Adding an app
 

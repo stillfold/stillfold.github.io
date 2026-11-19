@@ -6,8 +6,9 @@
 //
 // 1. The addresses other services hold. Each app's privacy policy address
 //    is typed into the Play Console and AdMob, AdMob reads /app-ads.txt,
-//    and GitHub Pages serves the domain named in /CNAME. If any of these
-//    moves or changes, something outside this repository breaks quietly.
+//    and Cloudflare Pages reads /_headers to keep its own pages.dev copy
+//    of the site out of search. If any of these moves or changes,
+//    something outside this repository breaks quietly.
 // 2. Every page: one title, one description, one main heading, a canonical
 //    address on stillfold.dev, and structured data that parses.
 // 3. Every link and picture inside the site points at a file that exists.
@@ -24,7 +25,10 @@ const read = async (p) => (existsSync(join(dist, p)) ? readFile(join(dist, p), '
 
 // 1. What other services hold.
 const held = {
-  'CNAME': (t) => t.trim() === 'stillfold.dev' || 'must be exactly stillfold.dev',
+  '_headers': (t) =>
+    (/^https:\/\/:project\.pages\.dev\/\*\n  X-Robots-Tag: noindex$/m.test(t) &&
+      /^https:\/\/:version\.:project\.pages\.dev\/\*\n  X-Robots-Tag: noindex$/m.test(t)) ||
+    'must keep both pages.dev addresses out of search',
   'app-ads.txt': (t) =>
     t.includes('google.com, pub-6590893466122140, DIRECT, f08c47fec0942fa0') || 'the AdMob line is missing',
   'robots.txt': (t) => t.includes('Sitemap: https://stillfold.dev/sitemap-index.xml') || 'does not name the sitemap',
@@ -72,6 +76,16 @@ for (const file of await walk(dist)) {
   if (count(html, /<meta name="description" content="[^"]{50,}"/g) !== 1 && !is404)
     bad(`${page}: needs one description of at least 50 characters`);
   if (count(html, /<h1[\s>]/g) !== 1) bad(`${page}: needs exactly one h1`);
+
+  // Cloudflare must be told to leave email addresses alone (Base.astro).
+  // It only rewrites the body, never the head, so only the body is read.
+  const email = /[\w.+-]+@[\w-]+\.[\w.]+/;
+  const body = html.slice(html.indexOf('<body'));
+  const off = body.indexOf('<!--email_off-->');
+  const on = body.indexOf('<!--/email_off-->');
+  if (off < 0 || on < off) bad(`${page}: the email_off comments around the body are missing`);
+  else if (email.test(body.slice(0, off)) || email.test(body.slice(on)))
+    bad(`${page}: an email address sits outside the email_off comments`);
 
   const title = html.match(/<title>([^<]+)<\/title>/)?.[1];
   if (titles.has(title)) bad(`${page}: same title as ${titles.get(title)}`);
