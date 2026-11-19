@@ -168,7 +168,7 @@ if (mode === 'film') {
 // home page at the size the networks ask for, without the menu.
 if (mode === 'og') {
   const page = await open('/', { width: 1200, height: 630, deviceScaleFactor: 1 }, 'og');
-  await page.addStyleTag({ content: '.nav, .hero__top { display: none }' });
+  await page.addStyleTag({ content: '.nav { display: none }' });
   await page.mouse.move(380, 150);
   await wait(1500);
   await page.screenshot({ path: fileURLToPath(new URL('../public/og.png', import.meta.url)) });

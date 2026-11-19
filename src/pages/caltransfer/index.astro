@@ -28,15 +28,17 @@ const title = 'Calendar Transfer: copy a calendar between accounts on Android';
 const description =
   'Calendar Transfer copies a calendar from one account to another on your Android phone, or saves it as an .ics file. Samsung to Google, Outlook to Google. Repeating events keep their changed dates, and nothing is uploaded.';
 
-// The words here are the Play listing's own (caltransfer/listing/en-GB).
-// Keep the two saying the same thing.
+// The words here are the Play listing's own (caltransfer/listing/en-GB),
+// and the pictures are the store's own captures (caltransfer/docs/store/raw,
+// retaken there 2026-11-19 from 1.0.7). Keep both in step with the app's
+// repository. preview.png is the exception: see where it is imported.
 const steps = [
   { src: choose, title: 'Move your calendar to your new phone', text: 'Copies between the calendars already on the phone.', alt: 'Calendar Transfer screenshot: choosing the calendar to copy from and the one to copy to' },
   { src: preview, title: 'See what will be copied, before anything is', text: 'Nothing is written until you tap Copy.', alt: 'Calendar Transfer screenshot: the count of repeating events, single events, days moved or cancelled, and colours that will be copied' },
   { src: colours, title: 'Colours matched to the new calendar', text: 'Each colour mapped to the closest one available.', alt: 'Calendar Transfer screenshot: each event colour beside the colour it will become' },
-  { src: done, title: 'Checked afterwards', text: 'Both calendars compared once the copy is done.', alt: 'Calendar Transfer screenshot: everything copied, both calendars match' },
-  { src: file, title: 'Or save it as a file', text: 'Every event, for any calendar app.', alt: 'Calendar Transfer screenshot: saving a calendar as an .ics file' },
-  { src: undo, title: 'Changed your mind?', text: 'Every copy can be undone, and only what it added goes.', alt: 'Calendar Transfer screenshot: undoing a copy' },
+  { src: done, title: 'Checked afterwards', text: 'Both calendars compared once the copy is done.', alt: 'Calendar Transfer screenshot: everything copied, both calendars match, and the copy listed under Recent copies' },
+  { src: file, title: 'Or save it as a file', text: 'Every event, for any calendar app.', alt: 'Calendar Transfer screenshot: saving a calendar as an .ics file, as one file or split into several' },
+  { src: undo, title: 'Changed your mind?', text: 'Every copy can be undone, and only what it added goes.', alt: 'Calendar Transfer screenshot: the question it asks before removing the events a copy added' },
 ];
 
 const breaks = [
