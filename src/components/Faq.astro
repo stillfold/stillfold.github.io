@@ -1,0 +1,16 @@
+---
+// Questions and answers, set as plain text on the paper. The same list is
+// also given to search engines as FAQPage data by the page that uses this.
+const { items } = Astro.props;
+---
+
+<dl class="faq">
+  {
+    items.map((item) => (
+      <div>
+        <dt>{item.q}</dt>
+        <dd>{item.a}</dd>
+      </div>
+    ))
+  }
+</dl>

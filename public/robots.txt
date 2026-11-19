@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://stillfold.dev/sitemap-index.xml

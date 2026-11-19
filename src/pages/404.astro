@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import Facets from '../components/Facets.astro';
+import { apps } from '../data/site.js';
+---
+
+<Base title="Page not found: stillfold" description="There is no page at this address." index={false}>
+  <main id="main" class="panel panel--paper lead lost" data-paper="paper">
+    <Facets pattern="hero" />
+    <div class="panel__in">
+      <p class="kicker">404</p>
+      <h1 class="title">This page is folded away.</h1>
+      <p class="lede">There is nothing at this address. These are the pages there are:</p>
+      <p class="cta">
+        <a class="more" href="/">stillfold</a>
+        <a class="more" href={apps.pickaxe.path}>{apps.pickaxe.name}</a>
+        <a class="more" href={apps.calendar.path}>{apps.calendar.name}</a>
+      </p>
+    </div>
+  </main>
+</Base>

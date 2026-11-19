@@ -1,0 +1,202 @@
+---
+import { Picture, getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Facets from '../../components/Facets.astro';
+import PlayLink from '../../components/PlayLink.astro';
+import Qr from '../../components/Qr.astro';
+import Reel from '../../components/Reel.astro';
+import Faq from '../../components/Faq.astro';
+import Split from '../../components/Split.astro';
+import Foot from '../../components/Foot.astro';
+import { apps, organization, site } from '../../data/site.js';
+
+import icon from '../../assets/caltransfer/icon.png';
+import choose from '../../assets/caltransfer/choose.png';
+import preview from '../../assets/caltransfer/preview.png';
+import colours from '../../assets/caltransfer/colours.png';
+import done from '../../assets/caltransfer/done.png';
+import file from '../../assets/caltransfer/file.png';
+import undo from '../../assets/caltransfer/undo.png';
+// preview.png again with the phone set to dark: same screen, same state,
+// captured straight after it, so the two halves of the split picture line
+// up. Retake both together or not at all (see README).
+import previewDark from '../../assets/caltransfer/preview-dark.png';
+
+const app = apps.calendar;
+const url = new URL(app.path, site.url).href;
+const title = 'Calendar Transfer: copy a calendar between accounts on Android';
+const description =
+  'Calendar Transfer copies a calendar from one account to another on your Android phone, or saves it as an .ics file. Samsung to Google, Outlook to Google. Repeating events keep their changed dates, and nothing is uploaded.';
+
+// The words here are the Play listing's own (caltransfer/listing/en-GB).
+// Keep the two saying the same thing.
+const steps = [
+  { src: choose, title: 'Move your calendar to your new phone', text: 'Copies between the calendars already on the phone.', alt: 'Calendar Transfer screenshot: choosing the calendar to copy from and the one to copy to' },
+  { src: preview, title: 'See what will be copied, before anything is', text: 'Nothing is written until you tap Copy.', alt: 'Calendar Transfer screenshot: the count of repeating events, single events, days moved or cancelled, and colours that will be copied' },
+  { src: colours, title: 'Colours matched to the new calendar', text: 'Each colour mapped to the closest one available.', alt: 'Calendar Transfer screenshot: each event colour beside the colour it will become' },
+  { src: done, title: 'Checked afterwards', text: 'Both calendars compared once the copy is done.', alt: 'Calendar Transfer screenshot: everything copied, both calendars match' },
+  { src: file, title: 'Or save it as a file', text: 'Every event, for any calendar app.', alt: 'Calendar Transfer screenshot: saving a calendar as an .ics file' },
+  { src: undo, title: 'Changed your mind?', text: 'Every copy can be undone, and only what it added goes.', alt: 'Calendar Transfer screenshot: undoing a copy' },
+];
+
+const breaks = [
+  'Repeating events keep repeating.',
+  'Occasions you edited stay edited, and ones you deleted stay deleted.',
+  'Colours come across, and you can change how each one maps before anything is written.',
+  'After every run it checks itself, comparing both calendars occurrence by occurrence, and tells you whether everything arrived.',
+  'Every copy can be undone: one tap removes exactly the events it added, and nothing else.',
+];
+
+const faq = [
+  {
+    q: 'Does my calendar leave my phone?',
+    a: 'No. Everything happens on your phone. Your events are read from one calendar and written to another; nothing is uploaded, and there is no account to create.',
+  },
+  {
+    q: 'Can it move a Samsung calendar to Google Calendar?',
+    a: 'Yes. Samsung to Google, Outlook to Google, or an old local calendar to a new one. It is useful when a calendar app has no export of its own, which is the case with Samsung Calendar.',
+  },
+  {
+    q: 'Can it export a calendar to an .ics file?',
+    a: 'Yes. Saving a calendar to an .ics file is free and complete, with no limit. Google Calendar will not import a large file in one go; unlocking adds a split into files it accepts.',
+  },
+  {
+    q: 'What does it cost?',
+    a: 'Copying straight into another calendar starts free: the first 50 events go across, chosen from the weeks around today and including a repeating event with its changed dates, so you can see it working before deciding whether to buy. One payment unlocks the rest. No subscription, no adverts.',
+  },
+  {
+    q: 'Which calendars does it work with?',
+    a: 'The calendars your phone syncs and shares between apps. Encrypted calendar apps such as Proton Calendar keep theirs private, so they cannot be read directly; copy into an account they import from instead.',
+  },
+  {
+    q: 'Does it have a dark mode?',
+    a: 'Yes. It follows your phone: light when the phone is light, dark when it is dark. On Android 12 and later it also takes its colours from your wallpaper.',
+  },
+  {
+    q: 'Can I undo a copy?',
+    a: 'Yes. Every copy can be undone: one tap removes exactly the events it added, and nothing else.',
+  },
+];
+
+const shot = async (src) => new URL((await getImage({ src, width: 1080, format: 'png' })).src, site.url).href;
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': ['SoftwareApplication', 'MobileApplication'],
+    name: app.fullName,
+    description:
+      'Copies a calendar from one account to another on an Android phone, or saves it as an .ics file. Repeating events keep their changed dates, colours are matched, and nothing is uploaded.',
+    url,
+    image: new URL('/caltransfer/img/feature.png', site.url).href,
+    screenshot: [await shot(choose), await shot(preview), await shot(colours)],
+    operatingSystem: 'Android 8.0 and later',
+    applicationCategory: 'UtilitiesApplication',
+    inLanguage: ['en', 'de', 'fr'],
+    installUrl: `https://play.google.com/store/apps/details?id=${app.id}`,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'GBP' },
+    author: organization,
+    publisher: organization,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'stillfold', item: site.url },
+      { '@type': 'ListItem', position: 2, name: app.name, item: url },
+    ],
+  },
+];
+---
+
+<Base title={title} description={description} image="/caltransfer/img/feature.png" schema={schema} over="teal">
+  <main id="main">
+    <header class="panel panel--teal lead" data-paper="teal">
+      <Facets pattern="b" />
+      <div class="panel__in two two--flip">
+        <div>
+          <p class="kicker">Android app</p>
+          <div class="title-row">
+            <Picture src={icon} formats={['avif', 'webp']} widths={[96, 192]} sizes="5.5rem" alt="" />
+            <h1 class="title title--teal">Calendar Transfer</h1>
+          </div>
+          <p class="lede">Copy, export or back up a calendar between accounts, or to an .ics file.</p>
+          <p class="text">
+            Move a calendar from one account to another without leaving your phone: Samsung to Google, Outlook to
+            Google, an old local calendar to a new one. Useful when a calendar app has no export of its own, which is
+            the case with Samsung Calendar.
+          </p>
+          <p class="cta cta--top">
+            <PlayLink id={app.id} where="app_top" />
+            <a class="more" href="#how">How it works</a>
+          </p>
+          <p class="fine">Free to try. One payment unlocks the rest. No subscription, no adverts. Light and dark. Android 8 and later.</p>
+        </div>
+        <Split
+          light={preview}
+          dark={previewDark}
+          alt="Calendar Transfer in its light and dark themes: the list of what will be copied, shown before anything is written"
+          caption="Light or dark, following your phone."
+          eager
+        />
+      </div>
+    </header>
+
+    <section class="panel panel--paper fold" id="how" data-fold data-paper="paper">
+      <Facets pattern="a" />
+      <div class="panel__in">
+        <h2 class="title title--mid">How it works</h2>
+        <Reel items={steps} />
+      </div>
+    </section>
+
+    <section class="panel panel--teal panel--deeper fold" id="careful" data-fold data-paper="teal">
+      <Facets pattern="c" />
+      <div class="panel__in two">
+        <div>
+          <h2 class="title title--teal title--mid">It handles the parts that usually break.</h2>
+          <p class="text">
+            People call this a calendar export, a calendar backup, or a calendar migration. It is all three, all on the
+            phone, with nothing uploaded.
+          </p>
+        </div>
+        <ul class="lines lines--wide">
+          {breaks.map((b) => <li>{b}</li>)}
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel panel--paper fold" id="questions" data-fold data-paper="paper">
+      <Facets pattern="b" />
+      <div class="panel__in">
+        <h2 class="title title--mid">Questions people ask</h2>
+        <Faq items={faq} />
+      </div>
+    </section>
+
+    <section class="panel panel--teal fold ending" data-fold data-paper="teal">
+      <Facets pattern="a" />
+      <div class="panel__in closing">
+        <div>
+          <h2 class="title title--teal title--mid">Move your calendar to your new phone.</h2>
+          <p class="cta">
+            <PlayLink id={app.id} where="app_end" />
+            <a class="more" href="privacy/">Privacy policy</a>
+          </p>
+          <p class="fine">In English, German and French.</p>
+        </div>
+        <Qr id={app.id} where="app" name={app.name} />
+      </div>
+    </section>
+  </main>
+  <Foot />
+</Base>

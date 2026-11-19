@@ -1,0 +1,28 @@
+---
+// A QR code for the Play listing, drawn when the site is built. Someone
+// reading on a computer cannot install an Android app there; this gets
+// them to the listing on their phone. It is hidden on small screens,
+// where the button already does the job.
+import QRCode from 'qrcode';
+import { play } from '../data/site.js';
+
+const { id, where, name } = Astro.props;
+const code = QRCode.create(play(id, `${where}_qr`), { errorCorrectionLevel: 'M' });
+const n = code.modules.size;
+const quiet = 3;
+let d = '';
+for (let y = 0; y < n; y += 1) {
+  for (let x = 0; x < n; x += 1) {
+    if (code.modules.get(y, x)) d += `M${x + quiet} ${y + quiet}h1v1h-1z`;
+  }
+}
+const box = n + quiet * 2;
+---
+
+<figure class="qr">
+  <svg viewBox={`0 0 ${box} ${box}`} role="img" aria-label={`QR code for ${name} on Google Play`} shape-rendering="crispEdges">
+    <rect width={box} height={box} rx="2.5" fill="#f3efe6"></rect>
+    <path d={d} fill="#17161b"></path>
+  </svg>
+  <figcaption>Reading on a computer? Scan to open it on your phone.</figcaption>
+</figure>

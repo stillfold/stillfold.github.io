@@ -1,0 +1,13 @@
+---
+import { play } from '../data/site.js';
+const { id, where, label = 'Get it on Google Play' } = Astro.props;
+---
+
+<a class="play" href={play(id, where)}>
+  <svg viewBox="0 0 24 24" aria-hidden="true"
+    ><path
+      fill="currentColor"
+      d="M5 3.2v17.6c0 .9 1 1.5 1.8 1L21 13c.8-.5.8-1.6 0-2L6.800 2.200C6 1.700 5 2.300 5 3.200Z"></path></svg
+  >
+  {label}
+</a>

@@ -1,3 +1,11 @@
+---
+layout: ../../../layouts/Prose.astro
+title: "Privacy policy: Pickaxe Planet"
+description: "What Pickaxe Planet reads, stores and sends, in plain words."
+back: /pickaxeplanet/
+backLabel: Pickaxe Planet
+---
+
 # Privacy Policy
 
 **Pickaxe Planet: Idle Miner**, by stillfold

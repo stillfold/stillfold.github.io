@@ -1,0 +1,1179 @@
+/*
+  stillfold: one sheet of paper, folded.
+
+  Every section is a panel of the same sheet in a different colour. There
+  are no boxes: text and pictures sit straight on the paper. The paper has
+  flat faces divided by creases (Facets.astro), lit from a point that
+  follows the pointer (--lx, --ly, each -1 to 1, written by sheet.js).
+  Panels after the first unfold as they scroll into view (--p, 0 folded
+  to 1 flat).
+
+  Without JavaScript, or with reduced motion, every value below keeps its
+  default and the page is a flat, fully readable sheet.
+*/
+
+:root {
+  --lx: 0.35;
+  --ly: -0.45;
+  --hp: 0;
+  /* Flat and settled unless a folding panel says otherwise. */
+  --p: 1;
+  --q: 1;
+
+  --ink: #17161b;
+  --ink-soft: #5d5a68;
+  --desk: #0d0c11;
+  --accent: #e4572e;
+  --gold: #ffd23f;
+
+  --font-display: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-body: 'Figtree Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-game: 'Fredoka Variable', 'Figtree Variable', system-ui, sans-serif;
+
+  --gutter: clamp(1.25rem, 5.5vw, 6rem);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--desk);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: clamp(1.0625rem, 0.96rem + 0.42vw, 1.3rem);
+  line-height: 1.5;
+  color: var(--ink);
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.skip {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  padding: 0.6em 1em;
+  background: var(--ink);
+  color: #fff;
+  border-radius: 999px;
+  transform: translateY(-300%);
+}
+
+.skip:focus {
+  transform: none;
+}
+
+/* ---------- the menu: words on the paper, no bar ---------- */
+
+.nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: clamp(0.9rem, 2.2vh, 1.6rem) var(--gutter);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink);
+  transition: color 0.35s;
+  pointer-events: none;
+}
+
+.nav::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -2.2rem 0;
+  z-index: -1;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  -webkit-mask-image: linear-gradient(#000 45%, transparent);
+  mask-image: linear-gradient(#000 45%, transparent);
+  /* Nothing to blur while the first panel is still on screen. */
+  opacity: clamp(0, calc(var(--hp) * 5 - 2.5), 1);
+}
+
+.nav a {
+  pointer-events: auto;
+  text-decoration: none;
+  padding: 0.35em 0;
+}
+
+.nav a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  text-decoration-thickness: 2px;
+}
+
+.nav__home {
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  /* Fades in as the big name scrolls away. */
+  opacity: clamp(0, calc(var(--hp) * 3 - 1.2), 1);
+}
+
+.nav__links {
+  display: flex;
+  gap: clamp(1rem, 2.5vw, 2.25rem);
+}
+
+html[data-over='game'] .nav {
+  color: #f4eefc;
+}
+
+html[data-over='teal'] .nav {
+  color: #fff;
+}
+
+@media (max-width: 34rem) {
+  .nav {
+    font-size: 0.84rem;
+  }
+  .nav__extra {
+    display: none;
+  }
+}
+
+/* ---------- panels and their folded faces ---------- */
+
+.panel {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  display: grid;
+  /* minmax(0, ...) so a sideways-scrolling row inside cannot widen the page. */
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  padding: clamp(5.5rem, 13vh, 10rem) var(--gutter);
+  color: var(--fg);
+  background: oklch(var(--fl) var(--fc) var(--fh));
+}
+
+.panel--paper {
+  --fl: 0.945;
+  --fc: 0.012;
+  --fh: 85;
+  --fk: 0.065;
+  --fg: var(--ink);
+  --crease: rgb(255 255 255 / 0.75);
+}
+
+.panel--game {
+  --fl: 0.215;
+  --fc: 0.06;
+  --fh: 298;
+  --fk: 0.05;
+  --fg: #f4eefc;
+  --crease: rgb(255 255 255 / 0.07);
+  --cta-bg: var(--gold);
+  --cta-fg: #1d1233;
+}
+
+.panel--teal {
+  --fl: 0.53;
+  --fc: 0.1;
+  --fh: 183;
+  --fk: 0.05;
+  --fg: #fff;
+  --crease: rgb(255 255 255 / 0.2);
+  --cta-bg: #fff;
+  --cta-fg: #0a5f58;
+}
+
+.facets {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+}
+
+.facets polygon {
+  --s: calc(var(--nx) * var(--lx) + var(--ny) * var(--ly));
+  fill: oklch(calc(var(--fl) + var(--s) * var(--fk)) var(--fc) var(--fh));
+  stroke: var(--crease);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* A panel unfolds from the crease along its top edge as it scrolls in. */
+.fold {
+  --p: 1;
+  --q: 1;
+  transform-origin: 50% 0;
+  transform: perspective(1800px) rotateX(calc((1 - var(--p)) * -64deg));
+}
+
+.fold::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0.15), rgb(0 0 0 / 0.9));
+  opacity: calc((1 - var(--p)) * 0.95);
+}
+
+/* The valley crease where one panel meets the last. */
+.fold::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: clamp(1.5rem, 5vh, 4rem);
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0.22), transparent);
+}
+
+.panel__in {
+  width: 100%;
+  max-width: 104rem;
+  margin-inline: auto;
+}
+
+.two {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(2.5rem, 6vw, 7rem);
+  align-items: center;
+}
+
+.two--flip > :first-child {
+  order: 2;
+}
+
+@media (max-width: 56rem) {
+  .two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .two--flip > :first-child {
+    order: 0;
+  }
+}
+
+/* ---------- type ---------- */
+
+.kicker {
+  margin: 0 0 1.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-weight: 600;
+  font-size: clamp(2.9rem, 8.4vw, 7.25rem);
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.title--game {
+  font-family: var(--font-game);
+  font-variation-settings: normal;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--gold);
+}
+
+.title--teal {
+  font-family: var(--font-body);
+  font-variation-settings: normal;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.lede {
+  margin: 0.55em 0 0.7em;
+  font-size: clamp(1.4rem, 2.5vw, 2.15rem);
+  font-weight: 500;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.text {
+  max-width: 34em;
+  margin: 0;
+  opacity: 0.9;
+  text-wrap: pretty;
+}
+
+.facts {
+  list-style: none;
+  margin: clamp(1.8rem, 4vh, 3rem) 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem clamp(1.75rem, 4vw, 3.5rem);
+}
+
+.facts b {
+  display: block;
+  font-size: clamp(2.2rem, 4.6vw, 4rem);
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.panel--game .facts b {
+  font-family: var(--font-game);
+  color: var(--gold);
+}
+
+.facts span {
+  display: block;
+  margin-top: 0.35em;
+  font-size: 0.92rem;
+  opacity: 0.8;
+}
+
+/* A plain list where the paper's own creases do the dividing. */
+.lines {
+  list-style: none;
+  margin: clamp(1.8rem, 4vh, 3rem) 0;
+  padding: 0;
+  max-width: 30em;
+}
+
+.lines li {
+  padding: 0.7em 0;
+  border-top: 1px solid rgb(255 255 255 / 0.28);
+  font-weight: 600;
+}
+
+.lines li:last-child {
+  border-bottom: 1px solid rgb(255 255 255 / 0.28);
+}
+
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.9rem;
+  margin: 0 0 1rem;
+}
+
+.play {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.95em 1.55em 0.95em 1.3em;
+  border-radius: 999px;
+  background: var(--cta-bg);
+  color: var(--cta-fg);
+  font-weight: 750;
+  text-decoration: none;
+  box-shadow: 0 0.6rem 1.6rem -0.6rem rgb(0 0 0 / 0.55);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.play:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 1.1rem 2.2rem -0.8rem rgb(0 0 0 / 0.6);
+}
+
+.play svg {
+  width: 1.05em;
+  height: 1.05em;
+  flex: none;
+}
+
+.more {
+  font-weight: 650;
+  text-underline-offset: 0.3em;
+  text-decoration-thickness: 2px;
+}
+
+.fine {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.72;
+}
+
+/* ---------- the first panel: the name, folded ---------- */
+
+.hero {
+  padding: 0;
+  overflow: clip;
+}
+
+.mark {
+  position: absolute;
+  inset: 52% 0 auto 0;
+  margin: 0;
+  translate: 0 -54%;
+  text-align: center;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 1,
+    'opsz' 144;
+  font-weight: calc(600 + var(--lx) * 70);
+  font-size: min(30vw, 44svh);
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+
+/* The upper half of the letters lies on the upper faces of the sheet. */
+.mark__top {
+  display: block;
+  clip-path: inset(-40% -10% 46% -10%);
+}
+
+/* The lower half is the same word on the half of the sheet that leans
+   away, so it is squashed and a shade darker. It folds further as the
+   page scrolls. The word is in the stylesheet, not the page, so a search
+   engine reads the name once. */
+.mark::after {
+  content: 'stillfold';
+  position: absolute;
+  inset: 0;
+  clip-path: inset(54% -10% -40% -10%);
+  transform-origin: 50% 54%;
+  transform: perspective(900px) rotateX(calc(-50deg + var(--ly) * 12deg - var(--hp) * 34deg))
+    skewX(calc(-9deg + var(--lx) * -7deg));
+  color: color-mix(in oklab, var(--ink) 78%, var(--accent));
+  opacity: calc(1 - var(--hp) * 0.5);
+}
+
+.hero__below {
+  position: absolute;
+  inset: auto var(--gutter) clamp(2.5rem, 9vh, 6rem);
+  display: grid;
+  justify-items: center;
+  gap: clamp(1.1rem, 3vh, 2rem);
+  text-align: center;
+}
+
+.hero__line {
+  margin: 0;
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 0;
+  font-size: clamp(1.3rem, 2.7vw, 2.3rem);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.hero__apps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-weight: 650;
+}
+
+.hero__apps a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  text-decoration: none;
+  padding: 0.3em 0;
+}
+
+.hero__apps a::before {
+  content: '';
+  width: 0.7em;
+  height: 0.7em;
+  rotate: 45deg;
+  background: var(--dot);
+}
+
+.hero__apps a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  text-decoration-thickness: 2px;
+}
+
+.hero__top {
+  position: absolute;
+  inset: clamp(5rem, 16vh, 9rem) var(--gutter) auto;
+  margin: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* ---------- pictures: loose on the paper, leaning with the light ---------- */
+
+.shots {
+  position: relative;
+  width: 100%;
+  max-width: 42rem;
+  margin-inline: auto;
+  aspect-ratio: 1 / 1.02;
+}
+
+.shot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 43%;
+  border-radius: clamp(12px, 2vw, 26px);
+  overflow: hidden;
+  box-shadow:
+    0 2.2rem 4rem -1.4rem rgb(0 0 0 / 0.7),
+    0 0 0 1px rgb(255 255 255 / 0.09);
+  transform: translate(-50%, -50%)
+    translate(
+      calc(var(--x) + var(--lx) * var(--d) * -1px),
+      calc(var(--y) + var(--ly) * var(--d) * -1px + (1 - var(--q)) * var(--d) * 4px)
+    )
+    rotate(var(--r));
+}
+
+.shot:nth-child(1) {
+  --x: -64%;
+  --y: 5%;
+  --r: -8deg;
+  --d: 9;
+  z-index: 1;
+}
+
+.shot:nth-child(2) {
+  --x: 0%;
+  --y: -3%;
+  --r: 0deg;
+  --d: 24;
+  z-index: 3;
+}
+
+.shot:nth-child(3) {
+  --x: 64%;
+  --y: 6%;
+  --r: 8deg;
+  --d: 15;
+  z-index: 2;
+}
+
+.solo {
+  display: grid;
+  justify-items: center;
+  perspective: 1400px;
+}
+
+.solo img {
+  width: min(21rem, 72%);
+  border-radius: clamp(14px, 2vw, 28px);
+  box-shadow: 0 2.5rem 4.5rem -1.5rem rgb(0 40 36 / 0.75);
+  transform: rotateY(calc(var(--lx) * 5deg)) rotateX(calc(var(--ly) * -4deg)) rotate(-3deg)
+    translateY(calc((1 - var(--q)) * 3rem));
+}
+
+/* One screen, light on one side of a crease and dark on the other. The
+   crease leans, and slides with the light. */
+.split {
+  --cut: calc(50% + var(--lx) * 36%);
+  --lean: 14%;
+  display: grid;
+  justify-items: center;
+  gap: 1.4rem;
+  margin: 0;
+  perspective: 1400px;
+}
+
+.split__sheet {
+  position: relative;
+  width: min(21rem, 72%);
+  border-radius: clamp(14px, 2vw, 28px);
+  overflow: hidden;
+  box-shadow: 0 2.5rem 4.5rem -1.5rem rgb(0 40 36 / 0.75);
+  transform: rotateY(calc(var(--lx) * 5deg)) rotateX(calc(var(--ly) * -4deg)) rotate(-3deg)
+    translateY(calc((1 - var(--q)) * 3rem));
+}
+
+.split__sheet img {
+  width: 100%;
+}
+
+.split__dark {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(
+    calc(var(--cut) + var(--lean)) 0,
+    100% 0,
+    100% 100%,
+    calc(var(--cut) - var(--lean)) 100%
+  );
+}
+
+/* The crease itself: a thin bright line along the cut. */
+.split__sheet::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgb(255 255 255 / 0.85);
+  clip-path: polygon(
+    calc(var(--cut) + var(--lean) - 1.5px) 0,
+    calc(var(--cut) + var(--lean) + 1.5px) 0,
+    calc(var(--cut) - var(--lean) + 1.5px) 100%,
+    calc(var(--cut) - var(--lean) - 1.5px) 100%
+  );
+}
+
+.split figcaption {
+  max-width: 22em;
+  text-align: center;
+  font-size: 0.92rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.8rem, 2vw, 1.6rem);
+}
+
+.title-row img {
+  width: clamp(3.2rem, 7vw, 5.5rem);
+  flex: none;
+  border-radius: 22%;
+  box-shadow: 0 1rem 2rem -0.8rem rgb(0 0 0 / 0.6);
+}
+
+/* Event colours crossing from one calendar to the other as the panel
+   scrolls: what the app does, drawn with five dots. */
+.swatches {
+  --travel: min(11rem, 34vw);
+  display: flex;
+  gap: 0.55rem;
+  margin: 0 0 clamp(1.5rem, 4vh, 2.5rem);
+  width: fit-content;
+  padding-right: var(--travel);
+}
+
+.swatches i {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.4);
+}
+
+.swatches i::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--from), var(--to) calc(var(--q) * 100%));
+  box-shadow: 0 0 0 2px #fff;
+  transform: translateX(calc(var(--q) * var(--travel)));
+}
+
+/* ---------- the last panel ---------- */
+
+.contact {
+  min-height: 78svh;
+  text-align: center;
+}
+
+.contact .title {
+  font-size: clamp(2.2rem, 6vw, 5rem);
+  max-width: 16em;
+  margin-inline: auto;
+}
+
+.mail {
+  display: inline-block;
+  margin-top: clamp(1.5rem, 4vh, 2.5rem);
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  font-weight: 500;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.foot {
+  margin: clamp(3rem, 10vh, 6rem) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.6rem;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.foot a {
+  text-underline-offset: 0.25em;
+}
+
+.foot p {
+  margin: 0;
+  flex-basis: 100%;
+}
+
+/* ---------- the inner pages ---------- */
+
+/* No big name to scroll away here, so the small one in the menu shows. */
+.inner {
+  --hp: 1;
+}
+
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Once a panel is flat it is left alone, so its text is drawn sharp. */
+.fold.is-flat {
+  transform: none;
+}
+
+.lead {
+  padding-top: clamp(6.5rem, 15vh, 10rem);
+}
+
+.panel--game.panel--deeper {
+  --fl: 0.175;
+}
+
+.panel--teal.panel--deeper {
+  --fl: 0.46;
+}
+
+/* The shaft gets darker the further down the list you are (--t, 0 to 1). */
+.panel--shaft {
+  --fl: calc(0.2 - var(--t, 0) * 0.1);
+}
+
+.title small {
+  display: block;
+  margin-top: 0.25em;
+  font-size: 0.4em;
+  letter-spacing: 0;
+  color: var(--fg);
+  opacity: 0.85;
+}
+
+.title--mid {
+  font-size: clamp(2.1rem, 5.2vw, 4.4rem);
+  margin-bottom: 0.5em;
+  max-width: 18em;
+}
+
+.cta--top {
+  margin-top: clamp(1.8rem, 4vh, 2.8rem);
+}
+
+.text strong {
+  font-weight: 700;
+}
+
+/* What you do: a numbered list with nothing drawn around the items. */
+.does {
+  list-style: none;
+  counter-reset: n;
+  margin: clamp(2rem, 5vh, 4rem) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: clamp(2rem, 4vw, 3.5rem) clamp(2rem, 5vw, 5rem);
+}
+
+.does li {
+  counter-increment: n;
+}
+
+.does li::before {
+  content: counter(n, decimal-leading-zero);
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-game);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  opacity: 0.6;
+}
+
+.does h3 {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-game);
+  font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--gold);
+}
+
+.does p {
+  margin: 0;
+  font-size: 0.98em;
+  opacity: 0.88;
+}
+
+/* The ten layers: the depth on the left stays put and counts as the
+   names scroll past it. */
+.shaft {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(1.25rem, 6vw, 6rem);
+  align-items: start;
+  margin-top: clamp(2.5rem, 7vh, 5rem);
+}
+
+.shaft__depth {
+  position: sticky;
+  top: 40vh;
+  min-width: 5.2ch;
+  margin: 0;
+  text-align: right;
+  font-family: var(--font-game);
+  font-size: clamp(2rem, 9vw, 8rem);
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold);
+}
+
+.shaft__layers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.shaft__layers li {
+  padding: clamp(1.1rem, 4.5vh, 2.6rem) 0;
+  font-family: var(--font-game);
+  font-size: clamp(1.6rem, 5.4vw, 4.6rem);
+  font-weight: 600;
+  line-height: 1.05;
+  transition: opacity 0.3s;
+}
+
+.shaft__layers span {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* The counter only means something while the script is counting. */
+.shaft:not(.is-live) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.shaft:not(.is-live) .shaft__depth {
+  display: none;
+}
+
+.shaft.is-live li {
+  opacity: 0.25;
+}
+
+.shaft.is-live li.is-here {
+  opacity: 1;
+}
+
+/* Screenshots in a row that runs off both edges and scrolls sideways. */
+.reel {
+  list-style: none;
+  display: flex;
+  gap: clamp(1.25rem, 3vw, 3rem);
+  margin: clamp(1rem, 3vh, 2rem) calc(var(--gutter) * -1) 0;
+  padding: 1.75rem var(--gutter) 2.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--gutter);
+  scrollbar-width: thin;
+}
+
+.reel li {
+  flex: none;
+  width: clamp(13.5rem, 62vw, 19rem);
+  scroll-snap-align: start;
+}
+
+.reel li:nth-child(odd) {
+  rotate: -1.2deg;
+}
+
+.reel li:nth-child(even) {
+  rotate: 1.2deg;
+  margin-top: 1.5rem;
+}
+
+.reel img {
+  width: 100%;
+  border-radius: clamp(12px, 1.6vw, 22px);
+  box-shadow:
+    0 1.8rem 3rem -1.4rem rgb(0 0 0 / 0.45),
+    0 0 0 1px rgb(0 0 0 / 0.07);
+}
+
+.reel h3 {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.reel p {
+  margin: 0 0 1.1rem;
+  min-height: 2.9em;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+.reel h3 {
+  min-height: 2.3em;
+  display: flex;
+  align-items: end;
+}
+
+/* Questions and answers. */
+.faq {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: clamp(1.8rem, 4vw, 3rem) clamp(2rem, 6vw, 6rem);
+  margin: clamp(1.5rem, 4vh, 3rem) 0 0;
+}
+
+.faq dt {
+  margin-bottom: 0.5rem;
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.panel--game .faq dt {
+  font-family: var(--font-game);
+  font-variation-settings: normal;
+  color: var(--gold);
+}
+
+.faq dd {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.lines--wide {
+  max-width: none;
+  margin: 0;
+  font-size: 1.08em;
+}
+
+.lines--wide li {
+  font-weight: 500;
+}
+
+/* The last word on an app's page: the button, and a code to scan. */
+.closing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2.5rem;
+  margin-top: clamp(3rem, 9vh, 6rem);
+}
+
+.closing > :first-child {
+  flex: 1 1 20rem;
+  min-width: 0;
+}
+
+.closing .qr {
+  flex: none;
+}
+
+.ending {
+  min-height: 70svh;
+}
+
+.ending .closing {
+  margin-top: 0;
+  align-items: center;
+}
+
+.closing .lede {
+  margin-top: 0;
+}
+
+.qr {
+  display: none;
+  width: 11rem;
+  margin: 0;
+  text-align: center;
+}
+
+.qr svg {
+  display: block;
+  width: 100%;
+}
+
+.qr figcaption {
+  margin-top: 0.7rem;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  opacity: 0.8;
+}
+
+@media (min-width: 56rem) {
+  .qr {
+    display: block;
+  }
+}
+
+/* Long text: the privacy policies. */
+.prose-panel {
+  align-items: start;
+  padding-top: clamp(7rem, 18vh, 11rem);
+}
+
+.prose {
+  width: 100%;
+  max-width: 40rem;
+  margin-inline: auto;
+}
+
+.prose .kicker a {
+  text-decoration: none;
+}
+
+.prose .kicker a::before {
+  content: '\2190\00a0';
+}
+
+.prose h1,
+.prose h2,
+.prose h3 {
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-weight: 600;
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.prose h1 {
+  margin: 0 0 1.5rem;
+  font-size: clamp(2.5rem, 6.5vw, 4.4rem);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.prose h2 {
+  margin: 2.4em 0 0.6em;
+  font-size: clamp(1.45rem, 2.6vw, 1.95rem);
+}
+
+.prose h3 {
+  margin: 1.8em 0 0.5em;
+  font-size: 1.2rem;
+}
+
+.prose a {
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+}
+
+.prose li {
+  margin: 0.4em 0;
+}
+
+.lost {
+  text-align: left;
+}
+
+/* Going from one page to another, the old sheet folds down and the new
+   one unfolds, in browsers that can do it. */
+@view-transition {
+  navigation: auto;
+}
+
+@keyframes fold-away {
+  to {
+    transform: perspective(1800px) rotateX(32deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fold-open {
+  from {
+    transform: perspective(1800px) rotateX(-32deg);
+    opacity: 0;
+  }
+}
+
+::view-transition-old(root) {
+  transform-origin: 50% 100%;
+  animation: 0.28s ease-in both fold-away;
+}
+
+::view-transition-new(root) {
+  transform-origin: 50% 0;
+  animation: 0.4s 0.1s ease-out both fold-open;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  .play,
+  .nav {
+    transition: none;
+  }
+}

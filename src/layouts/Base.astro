@@ -1,0 +1,60 @@
+---
+import '@fontsource-variable/fraunces/full.css';
+import '@fontsource-variable/figtree';
+import '@fontsource-variable/fredoka';
+import '../styles/global.css';
+import frauncesUrl from '@fontsource-variable/fraunces/files/fraunces-latin-full-normal.woff2?url';
+import { apps } from '../data/site.js';
+
+const {
+  title,
+  description,
+  image = '/og.png',
+  schema = [],
+  home = false,
+  over = 'paper',
+  index = true,
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const imageUrl = new URL(image, Astro.site).href;
+---
+
+<!doctype html>
+<html lang="en-GB" data-over={over} class:list={{ inner: !home }}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {index ? <link rel="canonical" href={canonical} /> : <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preload" href={frauncesUrl} as="font" type="font/woff2" crossorigin />
+    <meta name="theme-color" content="#f3efe6" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="stillfold" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={imageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {schema.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to the page</a>
+    <nav class="nav" aria-label="Main">
+      <a class="nav__home" href="/">stillfold</a>
+      <span class="nav__links">
+        <a href={apps.pickaxe.path}>{apps.pickaxe.name}</a>
+        <a href={apps.calendar.path}>{apps.calendar.name}</a>
+        <a class="nav__extra" href="/#contact">Contact</a>
+      </span>
+    </nav>
+    <slot />
+    <script>
+      import '../scripts/sheet.js';
+    </script>
+  </body>
+</html>

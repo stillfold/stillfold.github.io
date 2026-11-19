@@ -1,0 +1,126 @@
+---
+import { Picture } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Facets from '../components/Facets.astro';
+import PlayLink from '../components/PlayLink.astro';
+import Foot from '../components/Foot.astro';
+import Split from '../components/Split.astro';
+import { apps, organization, site } from '../data/site.js';
+
+import ppIcon from '../assets/pickaxeplanet/icon.png';
+import ppFrenzy from '../assets/pickaxeplanet/frenzy.png';
+import ppGuardian from '../assets/pickaxeplanet/guardian.png';
+import ppFishing from '../assets/pickaxeplanet/fishing-dock.png';
+import ctLight from '../assets/caltransfer/preview.png';
+import ctDark from '../assets/caltransfer/preview-dark.png';
+
+const title = 'stillfold, small Android apps and games';
+const description =
+  'stillfold makes small Android apps and games: Pickaxe Planet, a free idle mining game, and Calendar Transfer, which copies a calendar between accounts on your phone.';
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    ...organization,
+    email: site.email,
+    description: 'An independent developer of small Android apps and games.',
+  },
+  { '@context': 'https://schema.org', '@type': 'WebSite', name: site.name, url: site.url },
+];
+---
+
+<Base title={title} description={description} schema={schema} home>
+  <header class="panel panel--paper hero" data-hero data-paper="paper">
+    <Facets pattern="hero" />
+    <p class="hero__top">Independent, on Android</p>
+    <h1 class="mark"><span class="mark__top">stillfold</span></h1>
+    <div class="hero__below">
+      <p class="hero__line">Small Android apps and games.</p>
+      <ul class="hero__apps">
+        <li><a href="#pickaxe-planet" style="--dot:#ffd23f">Pickaxe Planet</a></li>
+        <li><a href="#calendar-transfer" style="--dot:#0d9488">Calendar Transfer</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="panel panel--game fold" id="pickaxe-planet" data-fold data-paper="game">
+      <Facets pattern="a" />
+      <div class="panel__in two">
+        <div>
+          <p class="kicker">Game &middot; Android &middot; Free</p>
+          <div class="title-row">
+            <Picture src={ppIcon} formats={['avif', 'webp']} widths={[96, 192]} sizes="5.5rem" alt="" />
+            <h2 class="title title--game">Pickaxe Planet</h2>
+          </div>
+          <p class="lede">Dig to the core of every world.</p>
+          <p class="text">
+            An idle mining game. Dig straight down through a blocky world, one tap at a time. Your miner keeps
+            digging while you are away, every tap hits harder, and every metre pays more.
+          </p>
+          <ul class="facts">
+            <li><b data-count="15">15</b><span>tiers of pickaxe to forge</span></li>
+            <li><b data-count="1000" data-tail=" m">1000 m</b><span>down to the Core</span></li>
+            <li><b data-count="150" data-tail="+">150+</b><span>kinds of fish to catch</span></li>
+          </ul>
+          <p class="cta">
+            <PlayLink id={apps.pickaxe.id} where="home" />
+            <a class="more" href="/pickaxeplanet/">About the game</a>
+          </p>
+          <p class="fine">Free to play. No forced ads.</p>
+        </div>
+        <div class="shots">
+          <div class="shot">
+            <Picture src={ppFrenzy} formats={['avif', 'webp']} widths={[240, 400, 540]} sizes="(max-width: 56rem) 40vw, 18rem" alt="Pickaxe Planet: a Frenzy, the miner digging at full speed" loading="lazy" />
+          </div>
+          <div class="shot">
+            <Picture src={ppGuardian} formats={['avif', 'webp']} widths={[240, 400, 540]} sizes="(max-width: 56rem) 40vw, 18rem" alt="Pickaxe Planet: fighting a stone Guardian that seals the mine shaft" loading="lazy" />
+          </div>
+          <div class="shot">
+            <Picture src={ppFishing} formats={['avif', 'webp']} widths={[240, 400, 540]} sizes="(max-width: 56rem) 40vw, 18rem" alt="Pickaxe Planet: fishing from the dock at an underground lake" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel--teal fold" id="calendar-transfer" data-fold data-paper="teal">
+      <Facets pattern="b" />
+      <div class="panel__in two two--flip">
+        <div>
+          <p class="kicker">App &middot; Android</p>
+          <div class="swatches" aria-hidden="true">
+            <i style="--from:#e0569b;--to:#7986cb"></i>
+            <i style="--from:#d0405a;--to:#e67c73"></i>
+            <i style="--from:#74809a;--to:#616161"></i>
+            <i style="--from:#f0284a;--to:#d50000"></i>
+            <i style="--from:#d9a441;--to:#f6bf26"></i>
+          </div>
+          <h2 class="title title--teal">Calendar Transfer</h2>
+          <p class="lede">Move your calendar to your new phone.</p>
+          <p class="text">
+            Copies a calendar from one account to another without leaving your phone: Samsung to Google, Outlook to
+            Google, or out to an .ics file. Nothing is uploaded, and there is no account to create.
+          </p>
+          <ul class="lines">
+            <li>Repeating events keep repeating</li>
+            <li>Colours come across</li>
+            <li>Every copy can be undone</li>
+          </ul>
+          <p class="cta">
+            <PlayLink id={apps.calendar.id} where="home" />
+            <a class="more" href="/caltransfer/">About the app</a>
+          </p>
+          <p class="fine">Free to try. One payment unlocks the rest. No subscription, no adverts. Light and dark.</p>
+        </div>
+        <Split
+          light={ctLight}
+          dark={ctDark}
+          alt="Calendar Transfer in its light and dark themes: the list of what will be copied, shown before anything is written"
+          caption="Light or dark, following your phone."
+        />
+      </div>
+    </section>
+  </main>
+
+  <Foot />
+</Base>

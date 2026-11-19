@@ -1,0 +1,22 @@
+---
+// One screen of an app in its light and its dark theme, as a single
+// picture with a slanted crease across it: light on one side, dark on the
+// other. The crease follows the light (--lx), so moving the pointer, or
+// scrolling on a phone, slides it from one theme to the other.
+//
+// The two captures must be the same screen in the same state at the same
+// size, taken one after the other, or the halves will not line up.
+import { Picture } from 'astro:assets';
+const { light, dark, alt, caption, sizes = '(max-width: 56rem) 70vw, 21rem', eager = false } = Astro.props;
+const shared = { formats: ['avif', 'webp'], widths: [320, 480, 672], sizes, loading: eager ? 'eager' : 'lazy' };
+---
+
+<figure class="split">
+  <div class="split__sheet">
+    <Picture src={light} alt={alt} {...shared} />
+    <div class="split__dark" aria-hidden="true">
+      <Picture src={dark} alt="" {...shared} />
+    </div>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

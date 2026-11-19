@@ -1,3 +1,11 @@
+---
+layout: ../../../layouts/Prose.astro
+title: "Privacy policy: Calendar Transfer"
+description: "What Calendar Transfer reads, stores and sends, in plain words."
+back: /caltransfer/
+backLabel: Calendar Transfer
+---
+
 # Privacy Policy
 
 **Calendar Transfer**, by stillfold

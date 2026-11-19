@@ -1,0 +1,24 @@
+---
+// The last panel of every page: who makes this, how to reach them, and
+// the links nobody should have to hunt for.
+import Facets from './Facets.astro';
+import { apps, site } from '../data/site.js';
+const { fold = true } = Astro.props;
+---
+
+<footer class:list={['panel', 'panel--paper', 'contact', { fold }]} id="contact" data-fold={fold ? '' : undefined} data-paper="paper">
+  <Facets pattern="c" />
+  <div class="panel__in">
+    <p class="kicker">Contact</p>
+    <h2 class="title">stillfold is an independent developer of small Android apps and games.</h2>
+    <a class="mail" href={`mailto:${site.email}`}>{site.email}</a>
+    <div class="foot">
+      <a href="/">Home</a>
+      <a href={apps.pickaxe.path}>{apps.pickaxe.name}</a>
+      <a href={`${apps.pickaxe.path}privacy/`}>{apps.pickaxe.name} privacy policy</a>
+      <a href={apps.calendar.path}>{apps.calendar.name}</a>
+      <a href={`${apps.calendar.path}privacy/`}>{apps.calendar.name} privacy policy</a>
+      <p>&copy; 2026 stillfold. Google Play is a trademark of Google LLC.</p>
+    </div>
+  </div>
+</footer>

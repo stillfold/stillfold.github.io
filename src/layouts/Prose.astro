@@ -1,0 +1,19 @@
+---
+// For pages written as Markdown: the privacy policies. The text is the
+// same as PRIVACY.md in each app's repository; change both together.
+import Base from './Base.astro';
+import Facets from '../components/Facets.astro';
+import Foot from '../components/Foot.astro';
+const { frontmatter } = Astro.props;
+---
+
+<Base title={frontmatter.title} description={frontmatter.description}>
+  <main id="main" class="panel panel--paper prose-panel" data-paper="paper">
+    <Facets pattern="b" />
+    <article class="prose">
+      {frontmatter.back && <p class="kicker"><a href={frontmatter.back}>{frontmatter.backLabel}</a></p>}
+      <slot />
+    </article>
+  </main>
+  <Foot />
+</Base>

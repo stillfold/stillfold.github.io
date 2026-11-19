@@ -1,0 +1,38 @@
+---
+// The folded sheet behind a panel. Each polygon is one flat face of the
+// paper, with the direction it leans in (--nx, --ny). The stylesheet works
+// out how bright the face is from where the light is (--lx, --ly, set by
+// src/scripts/sheet.js from the pointer), so moving the mouse moves the
+// light across the folds. Coordinates are percentages of the panel.
+const patterns = {
+  // One level crease at 52%, where the name is folded, and four slanted ones.
+  hero: [
+    { pts: '0,0 36,0 30,52 0,52', n: [-0.55, -0.35] },
+    { pts: '36,0 64,52 30,52', n: [0.1, -0.7] },
+    { pts: '36,0 100,0 100,52 64,52', n: [0.5, -0.25] },
+    { pts: '0,52 30,52 44,100 0,100', n: [-0.4, 0.55] },
+    { pts: '30,52 64,52 44,100', n: [0.1, 0.8] },
+    { pts: '64,52 100,52 100,100 44,100', n: [0.45, 0.4] },
+  ],
+  a: [
+    { pts: '0,0 62,0 38,100 0,100', n: [-0.45, 0.1] },
+    { pts: '62,0 100,0 100,64', n: [0.55, -0.45] },
+    { pts: '62,0 100,64 100,100 38,100', n: [0.3, 0.45] },
+  ],
+  b: [
+    { pts: '0,0 40,0 0,58', n: [-0.55, -0.45] },
+    { pts: '40,0 100,0 100,100 66,100', n: [0.4, 0.05] },
+    { pts: '40,0 66,100 0,100 0,58', n: [-0.2, 0.5] },
+  ],
+  c: [
+    { pts: '0,0 100,0 100,30 0,70', n: [0.15, -0.5] },
+    { pts: '0,70 100,30 100,100 0,100', n: [-0.15, 0.5] },
+  ],
+};
+const { pattern = 'a' } = Astro.props;
+const faces = patterns[pattern] ?? patterns.a;
+---
+
+<svg class="facets" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+  {faces.map((f) => <polygon points={f.pts} style={`--nx:${f.n[0]};--ny:${f.n[1]}`} />)}
+</svg>

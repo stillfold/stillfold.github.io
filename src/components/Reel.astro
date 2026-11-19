@@ -1,0 +1,26 @@
+---
+// A row of screenshots that runs off both edges of the paper and scrolls
+// sideways. Each has a caption over it, which is also what a search
+// engine reads about the picture.
+import { Picture } from 'astro:assets';
+const { items } = Astro.props;
+---
+
+<ul class="reel" tabindex="0" aria-label="Screenshots, scroll sideways for more">
+  {
+    items.map((item) => (
+      <li>
+        <h3>{item.title}</h3>
+        <p>{item.text}</p>
+        <Picture
+          src={item.src}
+          formats={['avif', 'webp']}
+          widths={[280, 420, 640]}
+          sizes="(max-width: 40rem) 62vw, 19rem"
+          alt={item.alt}
+          loading="lazy"
+        />
+      </li>
+    ))
+  }
+</ul>
